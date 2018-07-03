@@ -1,0 +1,14 @@
+server:
+  port: 8901
+spring:
+  application:
+    name: user
+  datasource:
+    password: com.gtk.com.xx
+    username: root
+    url: jdbc:mysql://localhost:3306/db1
+    driver-class-name: com.mysql.jdbc.Driver
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
