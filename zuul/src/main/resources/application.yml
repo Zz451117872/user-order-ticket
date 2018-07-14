@@ -17,3 +17,7 @@ zuul:
       path: /order/**
       serviceId: order
       stripPrefix: false
+    ticketApi:
+      path: /ticket/**
+      serviceId: ticket
+      stripPrefix: false

@@ -13,10 +13,10 @@ import java.util.List;
 public interface OrderDao extends JpaRepository<Order,Integer> {
 
     @Modifying
-    @Query("update order1 set status = ? where id = ?")
+    @Query("update order1 set status = ?1 where id = ?2")
     int updateStatus( Integer status , Integer orderId );
 
     @Modifying
-    @Query("select * from order1 where status = ? and createTime > ? ")
+    @Query("select o from order1 as o where status = ?1 and createTime > ?2 ")
     List<Order> selectByTimeAndStatus(   Integer status , long timeout );
 }

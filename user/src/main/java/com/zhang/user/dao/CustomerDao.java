@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface CustomerDao extends JpaRepository<Customer , Integer> {
 
     @Modifying
-    @Query("update customer1 set amount = amount  - ? where id = ? and amount = ?")
+    @Query("update customer1 set amount = amount  - ?1 where id = ?2 and amount = ?3")
     int  updateAmount(Integer updateAmount ,Integer userid, Integer currentAmount );
 }

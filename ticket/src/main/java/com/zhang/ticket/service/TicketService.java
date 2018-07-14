@@ -16,6 +16,7 @@ public class TicketService {
 
     @Transactional
     public void createTicket(Ticket ticket) {
+        ticketDao.save( ticket );
     }
 
     public List<Ticket> getAll() {

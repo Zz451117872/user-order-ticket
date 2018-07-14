@@ -47,10 +47,11 @@ public class JmsConfig {
     }
 
     @Bean
-    public MessageConverter jacksonJmsMessageConverter(){
+    public MappingJackson2MessageConverter jacksonJmsMessageConverter(){
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setTargetType( MessageType.TEXT );
-        converter.setTypeIdPropertyName("_type");
+
+//        converter.setTargetType( MessageType.TEXT );
+//        converter.setTypeIdPropertyName("_type");
         return converter;
     }
 }

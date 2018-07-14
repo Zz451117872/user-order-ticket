@@ -12,6 +12,8 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
+
 @Service
 public class TicketJmsService {
 
@@ -31,8 +33,9 @@ public class TicketJmsService {
      * @param orderDto
      */
     @Transactional
-    @JmsListener(destination = Const.order_new , containerFactory = "msgFactory")
+    //@JmsListener(destination = Const.order_new , containerFactory = "msgFactory")
     public void ticketJmsServiceHandler( OrderDTO orderDto){
+        System.out.println( "order : " + orderDto.toString() );
         int count = ticketDao.lockTicket( orderDto.getUserId() , orderDto.getTicketId() );
         //为1则表示锁票成功，反之则为锁票失败
         if( count == 1 ){

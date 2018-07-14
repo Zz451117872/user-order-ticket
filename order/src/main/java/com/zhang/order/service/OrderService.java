@@ -42,7 +42,6 @@ public class OrderService {
         orderDTO.setRease( order.getRease() );
         orderDTO.setTicketId( order.getTicketId() );
         orderDTO.setUserId( order.getUserId() );
-        orderDTO.setUuid( order.getUuid() );
         orderDTO.setId( order.getId() );
         orderDTO.setTitle( order.getTitle() );
         return orderDTO;
