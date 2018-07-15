@@ -1,5 +1,6 @@
 package com.zhang.user.service;
 
+import com.google.gson.Gson;
 import com.zhang.common.Const;
 import com.zhang.common.dto.OrderDTO;
 import com.zhang.user.Feign.OrderClient;
@@ -14,8 +15,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 
 @Service
 public class UserJmsService {
@@ -35,6 +42,9 @@ public class UserJmsService {
     @Autowired
     private RefundMoneyLogDao refundMoneyLogDao;
 
+    @Autowired
+    private Gson gson;
+
     Logger log = LoggerFactory.getLogger( UserJmsService.class );
 
     /**
@@ -44,21 +54,23 @@ public class UserJmsService {
     @Transactional
     @JmsListener(destination = Const.order_pay_no, containerFactory = "msgFactory")
     public void userPayHandler( OrderDTO orderDTO){
-
+        log.info( Const.order_pay_no +"收到消息--" + orderDTO);
         PayInfo payInfo = payInfoDao.getOne( orderDTO.getId() );
         if( payInfo != null ){
-            log.debug( "未支付订单重复消息--" , orderDTO );
+            log.info( "未支付订单重复消息--" + orderDTO );
+            log.info("payinfo -- " + payInfo );
             return ;
         }
         Customer customer = customerDao.getOne( orderDTO.getUserId() );
         if( customer.getAmount() < orderDTO.getAmount() ){
-            log.debug( "账户余额不足--" , orderDTO );
-            jmsTemplate.convertAndSend( Const.order_await_unlock, orderDTO );
+            log.info( "账户余额不足--" + orderDTO );
+            sendObject( Const.order_await_unlock , orderDTO , "_type" , OrderDTO.class );
+            //jmsTemplate.convertAndSend( Const.order_await_unlock, orderDTO );
             return ;
         }else{
             int result = customerDao.updateAmount( orderDTO.getAmount() , orderDTO.getUserId() , customer.getAmount() );
             if( result > 0 ){
-                log.debug( "订单支付成功--" , orderDTO );
+                log.info( "订单支付成功--"+ orderDTO );
                 payInfo = new PayInfo();
                 payInfo.setAmount( orderDTO.getAmount() );
                 payInfo.setOrderId( orderDTO.getId() );
@@ -67,10 +79,12 @@ public class UserJmsService {
                 orderDTO.setStatus( 1 );
 
                 orderClient.updateStatus( orderDTO.getId() , 1 );
-                jmsTemplate.convertAndSend( Const.order_ticket_move , orderDTO );
+                sendObject( Const.order_ticket_move , orderDTO , "_type" , OrderDTO.class );
+                //jmsTemplate.convertAndSend( Const.order_ticket_move , orderDTO );
             }else{
-                jmsTemplate.convertAndSend( Const.order_pay_fail , orderDTO );
-                log.debug( "执行支付订单失败--" , orderDTO );
+                sendObject( Const.order_pay_fail , orderDTO , "_type" , OrderDTO.class );
+                //jmsTemplate.convertAndSend( Const.order_pay_fail , orderDTO );
+                log.info( "执行支付订单失败--" + orderDTO );
             }
         }
     }
@@ -82,31 +96,47 @@ public class UserJmsService {
     @Transactional
     @JmsListener(destination = Const.order_ticket_movefail, containerFactory = "msgFactory")
     public void moveFailHandler( OrderDTO orderDTO){
+        log.info( Const.order_ticket_movefail +"收到消息:" , orderDTO);
         /**
          * 提票失败：先要返还购票费用 ，再发送至待解锁票消息队列
          */
         RefundMoneyLog refundMoneyLog = refundMoneyLogDao.getOne( orderDTO.getId() );
         if( refundMoneyLog != null ){
-            log.debug("重复退款消息--", orderDTO );
+            log.info("重复退款消息--", orderDTO );
             return ;
         }
         Customer customer = customerDao.getOne( orderDTO.getUserId() );
         if( customer == null ){
-            log.debug("退款账户不存在--", orderDTO );
+            log.info("退款账户不存在--", orderDTO );
             return ;
         }
         int result = customerDao.updateAmount( orderDTO.getAmount() , orderDTO.getUserId() , customer.getAmount() );
         if( result > 0 ){
-            log.debug("退款成功--", orderDTO );
+            log.info("退款成功--", orderDTO );
             refundMoneyLog = new RefundMoneyLog();
             refundMoneyLog.setAmount( orderDTO.getAmount() );
             refundMoneyLog.setOrderId( orderDTO.getId() );
             refundMoneyLog.setUserId( orderDTO.getUserId() );
             refundMoneyLogDao.save( refundMoneyLog );
-            jmsTemplate.convertAndSend(Const.order_await_unlock , orderDTO );
+            sendObject( Const.order_await_unlock , orderDTO , "_type" , OrderDTO.class );
+            //jmsTemplate.convertAndSend(Const.order_await_unlock , orderDTO );
         }else{
-            log.debug("退款失败--", orderDTO );
+            log.info("退款失败--", orderDTO );
         }
+    }
+
+
+    private void sendObject( String dest , Object obj , String typeId , Class clazz ){
+        jmsTemplate.send( dest, new MessageCreator() {
+            @Override
+            public Message createMessage(Session session) throws JMSException {
+                TextMessage message = session.createTextMessage();
+                message.setStringProperty( typeId , clazz.getName() );
+                String str = gson.toJson( obj , clazz );
+                message.setText( str );
+                return message;
+            }
+        });
     }
 
 }

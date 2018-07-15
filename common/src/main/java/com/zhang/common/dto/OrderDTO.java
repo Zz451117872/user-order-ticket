@@ -4,33 +4,33 @@ import java.io.Serializable;
 
 public class OrderDTO implements Serializable {
 
-    private int id;
+    private Integer id;
 
-    private  int userId;
+    private  Integer userId;
 
     private String title;
 
-    private int ticketId;
+    private Integer ticketId;
 
-    private int status;
+    private Integer status;
 
     private String rease;
 
-    private int amount;
+    private Integer amount;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
@@ -42,15 +42,15 @@ public class OrderDTO implements Serializable {
         this.title = title;
     }
 
-    public int getTicketId() {
+    public Integer getTicketId() {
         return ticketId;
     }
 
-    public void setTicketId(int ticketId) {
+    public void setTicketId(Integer ticketId) {
         this.ticketId = ticketId;
     }
 
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
@@ -66,7 +66,7 @@ public class OrderDTO implements Serializable {
         this.rease = rease;
     }
 
-    public int getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 

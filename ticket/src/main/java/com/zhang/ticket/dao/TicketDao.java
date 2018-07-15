@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface TicketDao extends JpaRepository<Ticket,Integer> {
 
     @Modifying
-    @Query("update ticket1 set locker = ?1 where locker is null and ticketNo = ?2")
+    @Query("update ticket1 set locker = ?1 where id = ?2 and locker = 0")
     int lockTicket( Integer locker , Integer ticketNo);
 
     @Modifying
